@@ -6,11 +6,8 @@
 
 package 'httpd'
 
-service 'httpd' do
-  action [:enable, :start]
-end
-
-
+yum_package 'httpd' do
+  action :install
 
 template '/var/www/html/index.html' do
 
