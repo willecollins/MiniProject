@@ -4,9 +4,11 @@
 #
 # Copyright (c) 2016 The Authors, All Rights Reserved.
 
-sudo yum -y install httpd
+package 'httpd'
 
-sudo service httpd start
+service 'httpd' do
+  action [:enable, :start]
+end
 
 
 
