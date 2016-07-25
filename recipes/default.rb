@@ -6,6 +6,6 @@
 sudo yum -y install httpd
 sudo service httpd start
 
-template '/etc/nginx/sites-enabled/index.html' do
+template '/var/www/html/index.html' do
   source 'index.html.erb'
 end
