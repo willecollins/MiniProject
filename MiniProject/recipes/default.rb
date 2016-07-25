@@ -8,6 +8,7 @@ package 'httpd'
 
 yum_package 'httpd' do
   action :install
+end
 
 template '/var/www/html/index.html' do
 
