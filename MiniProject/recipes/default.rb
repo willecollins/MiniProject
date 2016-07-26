@@ -6,12 +6,14 @@
 
 package 'httpd'
 
-yum_package 'httpd' do
-  action :install
+service 'httpd' do
+  action [:enable, :start]
 end
 
-template '/var/www/html/index.html' do
-
-  source 'index.html.erb'
-
+file '/var/www/html/index.html' do
+  content '<html>
+  <body>
+    <h1>hello world</h1>
+  </body>
+</html>'
 end
