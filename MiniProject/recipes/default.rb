@@ -13,7 +13,7 @@ end
 file '/var/www/html/index.html' do
   content '<html>
   <body>
-    <h1 align='center'>Automation for the People</h1>
+    <h1>Automation for the People</h1>
   </body>
 </html>'
 end
