@@ -1,0 +1,153 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Parameters": {
+    "ServiceRole": {
+      "Default": "aws-opsworks-service-role",
+      "Description": "The OpsWorks service role",
+      "Type": "String",
+      "MinLength": "1",
+      "MaxLength": "64"
+      
+    },
+    "InstanceRole": {
+      "Default": "aws-opsworks-ec2-role",
+      "Description": "The OpsWorks instance role",
+      "Type": "String",
+      "MinLength": "1",
+      "MaxLength": "64"
+      
+    },
+    "AppName": {
+      "Default": "myapp",
+      "Description": "The app name",
+      "Type": "String",
+      "MinLength": "1",
+      "MaxLength": "64"
+     
+    },
+    "KeyName" : {
+      "Description" : "Name of an existing EC2 KeyPair to enable SSH access to the instances",
+      "Type" : "String",
+      "MinLength": "1",
+      "MaxLength": "64"
+     
+},
+
+    "VPCId":  {
+      "Type": "String"
+    },
+     "PublicSubnets" : {
+      "Type" : "List<AWS::EC2::Subnet::Id>"
+      },
+      
+    "DefSubnet" : {
+      "Type" : "String"
+    }
+    
+  },
+  "Resources": {
+    "myStack": {
+      "Type": "AWS::OpsWorks::Stack",
+      "Properties": {
+        "Name": {
+          "Ref": "AWS::StackName"
+        },
+        "VpcId": {"Ref": "VPCId"},
+        "DefaultSshKeyName": {"Ref": "KeyName"},
+        "DefaultSubnetId": {"Ref" : "DefSubnet"},
+        "ServiceRoleArn": {
+          "Fn::Join": [
+            "", ["arn:aws:iam::", {"Ref": "AWS::AccountId"},
+                  ":role/", {"Ref": "ServiceRole"}]
+          ]
+        },
+        "DefaultInstanceProfileArn": {
+          "Fn::Join": [
+            "", ["arn:aws:iam::", {"Ref": "AWS::AccountId"},
+              ":instance-profile/", {"Ref": "InstanceRole"}]
+          ]
+        },
+        "UseCustomCookbooks": "true",
+        "CustomCookbooksSource": {
+          "Type": "git",
+          "Url": "https://github.com/willecollins/MiniProject.git"
+        }
+      }
+    },    
+    "myLayer": {
+      "Type": "AWS::OpsWorks::Layer",
+      "DependsOn": "myApp",
+      "Properties": {
+        "StackId": {"Ref": "myStack"},
+        "Type": "custom",
+	    "Shortname" : "static",
+        "EnableAutoHealing" : "true",
+        "AutoAssignElasticIps" : "false",
+        "AutoAssignPublicIps" : "true",
+        "Name": "MyStaticWebApp",
+        "CustomRecipes" : {
+          "Setup" : ["MiniProject::default"]
+        }
+      }
+    },
+    
+    "ELBAttachment" : {
+      "Type" : "AWS::OpsWorks::ElasticLoadBalancerAttachment",
+      "Properties" : {
+        "ElasticLoadBalancerName" : { "Ref" : "ELB" },
+        "LayerId" : { "Ref" : "myLayer" }
+      }
+    },	
+    "ELB" : {
+      "Type": "AWS::ElasticLoadBalancing::LoadBalancer",
+      "Properties": {
+      "Subnets": {"Ref" : "PublicSubnets"},
+        "Listeners": [{
+          "LoadBalancerPort": "80",
+          "InstancePort": "80",
+          "Protocol": "HTTP",
+          "InstanceProtocol": "HTTP"
+        }],
+        "HealthCheck": {
+          "Target": "HTTP:80/",
+          "HealthyThreshold": "2",
+          "UnhealthyThreshold": "10",
+          "Interval": "30",
+          "Timeout": "5"
+        }
+      }
+    },
+    
+    "myAppInstance1": {
+      "Type": "AWS::OpsWorks::Instance",
+      "Properties": {
+        "StackId": {"Ref": "myStack"},
+        "LayerIds": [{"Ref": "myLayer"}],
+        "InstanceType": "m1.small"
+      }
+    },    
+    
+   
+    "myApp" : {
+      "Type" : "AWS::OpsWorks::App",
+      "Properties" : {
+        "StackId" : {"Ref":"myStack"},
+        "Name" : {"Ref": "AppName"},
+        "Type" : "static",
+        "AppSource" : {
+          "Type" : "git",
+          "Url" : "https://github.com/willecollins/MiniProject.git",
+          "Revision" : "version2"
+        },
+        "Attributes" : {
+          "DocumentRoot" : "web"
+        }
+      }
+    }
+  },
+  "Outputs" : {
+
+    
+  }
+}
+
