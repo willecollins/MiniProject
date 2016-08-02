@@ -174,7 +174,7 @@ for instance in InstanceList:
 print (PublicIpAddress)
 
 #Run Server Tests
-TestCommand = 'inspec exec SimpleTest.rb -t ssh://ec2-user@' + PublicIpAddress + ' --key-files ' + SSHKey
+TestCommand = 'inspec exec SimpleTest.rb -t ssh://ec2-user@' + PublicIpAddress + ' --key-files ' + SSHKey + '.pem'
 subprocess.call (TestCommand, shell=True)
 
 
